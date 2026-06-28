@@ -11,8 +11,8 @@ const TestApp = {
 
   // 启动
   start() {
-    // 构建完整题目列表:固定16题 + 可能的动态题
-    this.state.questions = [...QUESTIONS];
+    // 每次开始都重新随机抽题,保证每次体验不一样
+    this.state.questions = buildQuestionSet();
     this.state.currentIndex = 0;
     this.state.answers = {};
     this.state.started = true;
@@ -255,7 +255,7 @@ const TestApp = {
         this.state.questions = [...this.state.questions, ...extras];
         // 更新总数显示
         document.getElementById('total-q').textContent = this.state.questions.length;
-        this.renderQuestion();
+        this.showTransition(() => this.renderQuestion());
         return;
       }
 
@@ -264,7 +264,102 @@ const TestApp = {
       return;
     }
 
-    this.renderQuestion();
+    // 切到下一题前,显示过渡(如果下一题是 love 或 fortune,弹个小窗)
+    this.showTransition(() => this.renderQuestion());
+  },
+
+  // 切换题目时的过渡动画
+  showTransition(after) {
+    const nextQ = this.state.questions[this.state.currentIndex];
+    if (!nextQ) {
+      after();
+      return;
+    }
+
+    // 第一次从 MBTI 切换到 love 或 fortune → 100% 弹窗(关键体验点)
+    const prevQ = this.state.currentIndex > 0
+      ? this.state.questions[this.state.currentIndex - 1]
+      : null;
+    const isFirstCategorySwitch = prevQ && prevQ.category === 'mbti' && nextQ.category !== 'mbti';
+
+    // 其他情况 70% 概率显示
+    const shouldShow = isFirstCategorySwitch || Math.random() <= 0.7;
+    if (!shouldShow) {
+      after();
+      return;
+    }
+
+    // love / fortune → 弹窗; MBTI 后续 → 横幅
+    const transition = pickTransition(nextQ.category);
+    if (!transition) {
+      after();
+      return;
+    }
+
+    if (typeof transition === 'string') {
+      this.showBanner(transition, after);
+    } else if (transition.type === 'popup') {
+      this.showPopup(transition, after);
+    } else if (transition.type === 'banner') {
+      this.showBanner(transition.text, after);
+    } else {
+      after();
+    }
+  },
+
+  // 显示小弹窗
+  showPopup(transition, after) {
+    // 避免重复弹窗
+    if (document.getElementById('transition-popup')) {
+      after();
+      return;
+    }
+
+    const popup = document.createElement('div');
+    popup.id = 'transition-popup';
+    popup.className = 'transition-popup';
+    popup.innerHTML = `
+      <div class="popup-card">
+        <div class="popup-icon">${transition.icon || '✨'}</div>
+        <h3 class="popup-title">${transition.title}</h3>
+        <p class="popup-desc">${transition.desc}</p>
+        <button class="popup-btn">${transition.btn || '继续'}</button>
+      </div>
+    `;
+    document.body.appendChild(popup);
+
+    // 触发动画
+    requestAnimationFrame(() => popup.classList.add('show'));
+
+    popup.querySelector('.popup-btn').onclick = () => {
+      popup.classList.remove('show');
+      setTimeout(() => {
+        popup.remove();
+        after();
+      }, 300);
+    };
+  },
+
+  // 显示顶部小横幅(自动消失)
+  showBanner(text, after) {
+    if (document.getElementById('transition-banner')) {
+      after();
+      return;
+    }
+    const banner = document.createElement('div');
+    banner.id = 'transition-banner';
+    banner.className = 'transition-banner';
+    banner.textContent = text;
+    document.body.appendChild(banner);
+    requestAnimationFrame(() => banner.classList.add('show'));
+
+    setTimeout(() => {
+      banner.classList.remove('show');
+      setTimeout(() => {
+        banner.remove();
+        after();
+      }, 300);
+    }, 1500);
   },
 
   // 计算 MBTI 类型
@@ -296,21 +391,38 @@ const TestApp = {
     const mbtiDescs = MBTI_DESCRIPTIONS[mbtiType] || MBTI_DESCRIPTIONS.ENFP;
     const mbtiDesc = mbtiDescs[Math.floor(Math.random() * mbtiDescs.length)];
 
-    const destinyAnswer = this.state.answers[16];
+    // 找命运题的实际 id(题库是随机的,id 顺序会变)
+    const destinyQ = this.state.questions.find(q => q.fortuneKey === 'destiny');
+    const destinyAnswer = destinyQ ? this.state.answers[destinyQ.id] : null;
     const fateText = destinyAnswer === 'yes'
       ? FINAL_RESULTS.destiny_yes
       : FINAL_RESULTS.destiny_no;
+
+    // 找核心感情题 - 用于后台汇总(用 loveKey 标识)
+    const loveQByKey = {};
+    this.state.questions.forEach(q => {
+      if (q.loveKey) loveQByKey[q.loveKey] = q;
+    });
+    // 标准化 answers - 用 loveKey 存一份,方便后台
+    const normalizedAnswers = { ...this.state.answers };
+    Object.entries(loveQByKey).forEach(([key, q]) => {
+      if (this.state.answers[q.id] !== undefined) {
+        normalizedAnswers[key] = this.state.answers[q.id];
+      }
+    });
 
     // 构造提交数据
     const payload = {
       mbtiType,
       mbtiDesc,
-      answers: this.state.answers,
+      answers: normalizedAnswers,
       questions: this.state.questions.map(q => ({
         id: q.id,
         text: q.text,
         category: q.category,
         type: q.type,
+        loveKey: q.loveKey || null,
+        fortuneKey: q.fortuneKey || null,
         value: this.state.answers[q.id] || ''
       })),
       fate: fateText,

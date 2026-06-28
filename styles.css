@@ -419,9 +419,119 @@ body {
   color: var(--text-mid);
 }
 
+/* ===== 题与题之间的过渡弹窗 ===== */
+.transition-popup {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 1, 24, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.transition-popup.show {
+  opacity: 1;
+}
+.popup-card {
+  background: linear-gradient(135deg, rgba(45, 27, 105, 0.95) 0%, rgba(26, 11, 61, 0.95) 100%);
+  border: 2px solid rgba(183, 148, 246, 0.5);
+  border-radius: 24px;
+  padding: 40px 30px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(183, 148, 246, 0.4);
+  transform: scale(0.8);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: popupBounce 0.6s ease;
+}
+.transition-popup.show .popup-card {
+  transform: scale(1);
+}
+@keyframes popupBounce {
+  0% { transform: scale(0.5) translateY(20px); opacity: 0; }
+  50% { transform: scale(1.05) translateY(-5px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.popup-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: float 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(183, 148, 246, 0.6));
+}
+.popup-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  background: var(--btn-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+}
+.popup-desc {
+  font-size: 15px;
+  color: var(--text-mid);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+.popup-btn {
+  display: inline-block;
+  padding: 14px 40px;
+  background: var(--btn-gradient);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 8px 25px rgba(183, 148, 246, 0.4);
+  transition: all 0.2s ease;
+}
+.popup-btn:hover, .popup-btn:active {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(183, 148, 246, 0.6);
+}
+
+/* 顶部小横幅 */
+.transition-banner {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: linear-gradient(135deg, rgba(183, 148, 246, 0.95), rgba(246, 135, 179, 0.95));
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 10px 30px rgba(183, 148, 246, 0.4);
+  z-index: 9998;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.transition-banner.show {
+  transform: translateX(-50%) translateY(0);
+}
+
 /* ===== 响应式 ===== */
 @media (max-width: 380px) {
   .title { font-size: 32px; }
   .question-text { font-size: 19px; }
   .result-type { font-size: 36px; }
+  .popup-card { padding: 30px 20px; }
+  .popup-icon { font-size: 52px; }
+  .popup-title { font-size: 20px; }
+  .transition-banner { font-size: 12px; padding: 10px 20px; }
 }

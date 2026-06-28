@@ -204,7 +204,7 @@ const AdminApp = {
     this.renderRecords();
   },
 
-  // 统计卡片
+  // 统计卡片(用 loveKey/fortuneKey 替代固定 id)
   renderStats() {
     const total = this.records.length;
     const today = this.records.filter(r => {
@@ -212,10 +212,10 @@ const AdminApp = {
       const now = new Date();
       return d.toDateString() === now.toDateString();
     }).length;
-    const withLover = this.records.filter(r => r.answers[5] === 'yes').length;
-    const regret = this.records.filter(r => r.answers[11] === 'yes').length;
-    const crush = this.records.filter(r => r.answers[13] === 'yes').length;
-    const destinyYes = this.records.filter(r => r.answers[16] === 'yes').length;
+    const withLover = this.records.filter(r => r.answers && r.answers.hasLover === 'yes').length;
+    const regret = this.records.filter(r => r.answers && r.answers.hasRegret === 'yes').length;
+    const crush = this.records.filter(r => r.answers && r.answers.likesOther === 'yes').length;
+    const destinyYes = this.records.filter(r => r.answers && r.answers.destiny === 'yes').length;
 
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-today').textContent = today;
@@ -249,30 +249,37 @@ const AdminApp = {
   },
 
   renderCore() {
-    const coreQs = [
-      { id: 5, text: '你是否已经拥有爱人?' },
-      { id: 7, text: '你觉得的爱情是什么?' },
-      { id: 9, text: '你认为自己的这段爱情能永远保持下去?' },
-      { id: 11, text: '在你心里是否存在过遗憾?' },
-      { id: 13, text: '你在感情中是否喜欢上过不是和你在一起的其他人或产生好感?' },
-      { id: 16, text: '你是否相信自己的命运都是安排好的?' }
+    // 核心感情题(用 loveKey 标识,不再用 id)
+    const coreQDefs = [
+      { loveKey: 'hasLover', text: '你是否已经拥有爱人?' },
+      { loveKey: 'loveView', text: '你觉得的爱情是什么?' },
+      { loveKey: 'canForever', text: '你认为自己的这段爱情能永远保持下去?' },
+      { loveKey: 'hasRegret', text: '在你心里是否存在过遗憾?' },
+      { loveKey: 'likesOther', text: '你在感情中是否喜欢上过不是和你在一起的其他人或产生好感?' }
+    ];
+    const destinyQDefs = [
+      { fortuneKey: 'destiny', text: '你是否相信自己的命运都是安排好的?' }
     ];
 
     const stats = {};
-    coreQs.forEach(q => {
-      stats[q.id] = {};
+    [...coreQDefs, ...destinyQDefs].forEach(q => {
+      stats[q.loveKey || q.fortuneKey] = {};
       this.records.forEach(r => {
-        const v = r.answers[q.id];
-        if (v) stats[q.id][v] = (stats[q.id][v] || 0) + 1;
+        // 优先用 loveKey/fortuneKey 直接取
+        const key = q.loveKey || q.fortuneKey;
+        const v = r.answers && r.answers[key];
+        if (v) stats[key][v] = (stats[key][v] || 0) + 1;
       });
     });
 
     const container = document.getElementById('core-questions-list');
-    container.innerHTML = coreQs.map(q => {
-      const opts = Object.entries(stats[q.id]);
-      return `
+    let html = '';
+    [...coreQDefs, ...destinyQDefs].forEach(q => {
+      const key = q.loveKey || q.fortuneKey;
+      const opts = Object.entries(stats[key]);
+      html += `
         <div class="core-q">
-          <div class="core-q-title">Q${q.id}. ${esc(q.text)}</div>
+          <div class="core-q-title">${esc(q.text)}</div>
           <div class="core-options">
             ${opts.length > 0 ? opts.map(([val, count]) => `
               <div class="core-opt"><span>${esc(val)}</span><span class="core-opt-count">${count}人</span></div>
@@ -280,7 +287,7 @@ const AdminApp = {
           </div>
         </div>
       `;
-    }).join('');
+    });
 
     // 深度触发统计
     const deep = {
@@ -290,7 +297,7 @@ const AdminApp = {
       crushDate: this.records.filter(r => r.answers[103]).length
     };
     if (deep.regretName + deep.crushName > 0) {
-      const html = `
+      html += `
         <div class="core-q">
           <div class="core-q-title">🔍 深度问题触发情况</div>
           <div class="core-options">
@@ -301,8 +308,9 @@ const AdminApp = {
           </div>
         </div>
       `;
-      container.insertAdjacentHTML('beforeend', html);
     }
+
+    container.innerHTML = html;
   },
 
   renderRecords() {
@@ -318,13 +326,15 @@ const AdminApp = {
       const mbtiType = esc(r.mbtiType || '?');
       const testId = esc(r.testId || '');
 
-      const qa = (qid, qtext) => {
-        const v = r.answers[qid];
+      const qa = (key, qtext) => {
+        // key 可以是 loveKey / fortuneKey / 数字 id
+        const v = r.answers[key];
         if (!v) return '';
-        const isCore = [5, 7, 9, 11, 13, 16, 100, 101, 102, 103].includes(qid);
-        return `<tr><th>${isCore?'❤️':''} Q${qid} ${esc(qtext)}</th><td><span class="value-tag ${isCore?'core':''}">${esc(v)}</span></td></tr>`;
+        const isCore = ['hasLover', 'loveView', 'canForever', 'hasRegret', 'likesOther', 100, 101, 102, 103].includes(key) || (typeof key === 'string' && (key.startsWith('has') || key.includes('View') || key.includes('Forever')));
+        return `<tr><th>${isCore?'❤️':''} ${esc(qtext)}</th><td><span class="value-tag ${isCore?'core':''}">${esc(v)}</span></td></tr>`;
       };
 
+      // 优先用标准化 key 取值(后端已处理),fallback 到 id
       return `
         <div class="record-item" data-idx="${idx}">
           <div class="record-header" onclick="AdminApp.toggleRecord(${idx})">
@@ -339,16 +349,16 @@ const AdminApp = {
             <div style="color:#94a3b8;font-size:13px;margin-top:12px"><strong style="color:#c084fc">命运提示:</strong> ${esc(r.fate || '(无)')}</div>
             <table class="record-table">
               <tbody>
-                ${qa(5, '是否已有爱人?')}
-                ${qa(7, '爱情是什么?')}
-                ${qa(9, '能永远保持吗?')}
-                ${qa(11, '存在遗憾吗?')}
-                ${qa(13, '喜欢过别人吗?')}
-                ${qa(16, '相信命运安排?')}
-                ${qa(10, '我的姓')}
-                ${qa(12, '我的生日')}
-                ${qa(14, '配偶姓')}
-                ${qa(15, '配偶生日')}
+                ${qa('hasLover', '是否已有爱人?')}
+                ${qa('loveView', '爱情是什么?')}
+                ${qa('canForever', '能永远保持吗?')}
+                ${qa('hasRegret', '存在遗憾吗?')}
+                ${qa('likesOther', '喜欢过别人吗?')}
+                ${qa('destiny', '相信命运安排?')}
+                ${qa('surname', '我的姓')}
+                ${qa('birthday', '我的生日')}
+                ${qa('loverSurname', '配偶姓')}
+                ${qa('loverBirthday', '配偶生日')}
                 ${qa(100, '遗憾的人-姓')}
                 ${qa(101, '遗憾的人-生日')}
                 ${qa(102, '心动的人-姓')}
@@ -378,20 +388,20 @@ const AdminApp = {
       new Date(r.timestamp).toLocaleString('zh-CN'),
       r.mbtiType,
       r.fate,
-      r.answers[5] || '',
-      r.answers[7] || '',
-      r.answers[9] || '',
-      r.answers[11] || '',
-      r.answers[13] || '',
-      r.answers[16] || '',
-      r.answers[10] || '',
-      r.answers[12] || '',
-      r.answers[14] || '',
-      r.answers[15] || '',
-      r.answers[100] || '',
-      r.answers[101] || '',
-      r.answers[102] || '',
-      r.answers[103] || ''
+      (r.answers && r.answers.hasLover) || '',
+      (r.answers && r.answers.loveView) || '',
+      (r.answers && r.answers.canForever) || '',
+      (r.answers && r.answers.hasRegret) || '',
+      (r.answers && r.answers.likesOther) || '',
+      (r.answers && r.answers.destiny) || '',
+      (r.answers && r.answers.surname) || '',
+      (r.answers && r.answers.birthday) || '',
+      (r.answers && r.answers.loverSurname) || '',
+      (r.answers && r.answers.loverBirthday) || '',
+      (r.answers && r.answers[100]) || '',
+      (r.answers && r.answers[101]) || '',
+      (r.answers && r.answers[102]) || '',
+      (r.answers && r.answers[103]) || ''
     ]);
 
     const csv = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
