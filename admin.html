@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>灵魂探测仪 · 数据后台</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <!-- 登录页 -->
+  <div id="login-page" class="page active">
+    <div class="login-card">
+      <h1>🔐 数据后台</h1>
+      <p class="subtitle">仅限管理员访问</p>
+      <input type="password" id="password-input" class="pwd-input" placeholder="请输入管理员密码" autocomplete="off">
+      <button class="btn-login" onclick="AdminApp.login()">进入后台</button>
+      <p id="login-error" class="error"></p>
+    </div>
+  </div>
+
+  <!-- 后台主页 -->
+  <div id="admin-page" class="page">
+    <header class="admin-header">
+      <h1>📊 灵魂探测仪 · 数据看板</h1>
+      <div class="header-actions">
+        <button class="btn-refresh" onclick="AdminApp.refresh()">🔄 刷新数据</button>
+        <button class="btn-export" onclick="AdminApp.exportCSV()">📥 导出CSV</button>
+        <button class="btn-clear" onclick="AdminApp.clearLocal()" style="background:#ef4444">🗑 清空本地</button>
+        <button class="btn-logout" onclick="AdminApp.logout()">退出</button>
+      </div>
+    </header>
+
+    <!-- 数据概览 -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">总测试人数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-today">0</div>
+        <div class="stat-label">今日新增</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-with-lover">0</div>
+        <div class="stat-label">已有爱人</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-regret">0</div>
+        <div class="stat-label">存在遗憾</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-crush">0</div>
+        <div class="stat-label">喜欢过别人</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-destiny-yes">0</div>
+        <div class="stat-label">相信命运安排</div>
+      </div>
+    </section>
+
+    <!-- MBTI 分布 -->
+    <section class="chart-section">
+      <h2>🧠 MBTI 人格分布</h2>
+      <div id="mbti-chart" class="mbti-chart"></div>
+    </section>
+
+    <!-- 核心问题数据 - 感情类问题汇总 -->
+    <section class="core-section">
+      <h2>💕 感情核心问题(关键数据)</h2>
+      <div id="core-questions-list" class="core-list"></div>
+    </section>
+
+    <!-- 详细记录列表 -->
+    <section class="records-section">
+      <h2>📝 所有测试记录 <span class="hint">点击展开详情</span></h2>
+      <div id="records-list" class="records-list"></div>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

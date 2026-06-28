@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+  <title>灵魂探测仪 · 你的人格底色</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔮</text></svg>">
+</head>
+<body>
+  <!-- 开场页 -->
+  <section id="page-intro" class="page active">
+    <div class="stars"></div>
+    <div class="container">
+      <div class="logo">🔮</div>
+      <h1 class="title">灵魂探测仪</h1>
+      <p class="subtitle">你的人格底色 · 你的人生命运</p>
+      <p class="desc">16道题 · 3分钟<br>看清自己的灵魂底色<br>看清命运的隐秘走向</p>
+      <button class="btn-primary" onclick="TestApp.start()">开始测试</button>
+      <p class="tip">⚠️ 本测试为娱乐性质,请放松作答</p>
+    </div>
+  </section>
+
+  <!-- 答题页 -->
+  <section id="page-quiz" class="page">
+    <div class="container">
+      <div class="progress">
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        <div class="progress-text"><span id="current-q">1</span> / <span id="total-q">16</span></div>
+      </div>
+      <div id="question-card" class="card">
+        <div id="category-tag" class="tag"></div>
+        <h2 id="question-text" class="question-text"></h2>
+        <div id="answer-area" class="answer-area"></div>
+        <p id="error-msg" class="error-msg"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 结果页 -->
+  <section id="page-result" class="page">
+    <div class="stars"></div>
+    <div class="container">
+      <div class="result-card">
+        <div class="result-icon">✨</div>
+        <h1 id="mbti-type" class="result-type"></h1>
+        <p id="mbti-desc" class="result-desc"></p>
+        <div class="divider"></div>
+        <h2 class="result-fate-title">命运提示</h2>
+        <p id="fate-text" class="result-fate"></p>
+        <div class="share-tip">📱 截图分享给朋友,看看 TA 的人格底色</div>
+        <button class="btn-secondary" onclick="TestApp.restart()">再测一次</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="mbti-descriptions.js"></script>
+  <script src="questions.js"></script>
+  <script src="ntfy-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
