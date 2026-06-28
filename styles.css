@@ -277,6 +277,47 @@ body {
   cursor: pointer;
 }
 
+/* 三段式日期选择器 */
+.date-picker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.date-sel {
+  flex: 1;
+  padding: 14px 8px;
+  background: rgba(183, 148, 246, 0.08);
+  border: 1.5px solid rgba(183, 148, 246, 0.3);
+  border-radius: 12px;
+  color: var(--text-light);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b794f6' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+.date-sel:focus {
+  background-color: rgba(183, 148, 246, 0.18);
+  border-color: var(--accent-purple);
+}
+.date-sel option {
+  background: #1a0b3d;
+  color: var(--text-light);
+}
+.date-hint {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+  margin: 8px 0 4px;
+  opacity: 0.7;
+}
+
 .submit-btn {
   display: block;
   width: 100%;

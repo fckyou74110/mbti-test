@@ -127,7 +127,8 @@ window.QUESTIONS = [
     text: '你的生日是?',
     options: null,
     input: 'date',
-    placeholder: '请选择你的生日'
+    placeholder: '请选择你的生日',
+    required: true
   },
   {
     id: 13,

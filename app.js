@@ -80,25 +80,95 @@ const TestApp = {
     } else if (q.input) {
       // 输入题
       if (q.input === 'date') {
-        const inp = document.createElement('input');
-        inp.type = 'date';
-        inp.className = 'input-date';
-        inp.placeholder = q.placeholder || '';
-        if (this.state.answers[q.id]) inp.value = this.state.answers[q.id];
-        answerArea.appendChild(inp);
+        // 用三个 select 拼日期 - 比 input[type=date] 兼容性更好
+        const currentVal = this.state.answers[q.id] || ''; // yyyy-mm-dd
+        const [y0, m0, d0] = currentVal.split('-');
+
+        const wrap = document.createElement('div');
+        wrap.className = 'date-picker';
+
+        // 年
+        const yearSel = document.createElement('select');
+        yearSel.className = 'date-sel';
+        yearSel.innerHTML = '<option value="">年</option>';
+        const thisYear = new Date().getFullYear();
+        for (let y = thisYear; y >= 1930; y--) {
+          const opt = document.createElement('option');
+          opt.value = y; opt.textContent = y;
+          if (y0 && parseInt(y0) === y) opt.selected = true;
+          yearSel.appendChild(opt);
+        }
+
+        // 月
+        const monthSel = document.createElement('select');
+        monthSel.className = 'date-sel';
+        monthSel.innerHTML = '<option value="">月</option>';
+        for (let m = 1; m <= 12; m++) {
+          const opt = document.createElement('option');
+          opt.value = String(m).padStart(2, '0');
+          opt.textContent = m + '月';
+          if (m0 && parseInt(m0) === m) opt.selected = true;
+          monthSel.appendChild(opt);
+        }
+
+        // 日
+        const daySel = document.createElement('select');
+        daySel.className = 'date-sel';
+        daySel.innerHTML = '<option value="">日</option>';
+
+        // 根据年月计算当月天数
+        function getDaysInMonth(year, month) {
+          if (!year || !month) return 31;
+          return new Date(year, month, 0).getDate();
+        }
+        function updateDays() {
+          const y = parseInt(yearSel.value);
+          const m = parseInt(monthSel.value);
+          const maxDays = getDaysInMonth(y, m);
+          const currentDay = d0 ? parseInt(d0) : 0;
+          daySel.innerHTML = '<option value="">日</option>';
+          for (let d = 1; d <= maxDays; d++) {
+            const opt = document.createElement('option');
+            opt.value = String(d).padStart(2, '0');
+            opt.textContent = d + '日';
+            if (currentDay === d) opt.selected = true;
+            daySel.appendChild(opt);
+          }
+        }
+        updateDays();
+
+        yearSel.onchange = updateDays;
+        monthSel.onchange = updateDays;
+
+        wrap.appendChild(yearSel);
+        wrap.appendChild(monthSel);
+        wrap.appendChild(daySel);
+        answerArea.appendChild(wrap);
+
+        // 提示
+        const hint = document.createElement('p');
+        hint.className = 'date-hint';
+        hint.textContent = q.placeholder || '请选择日期';
+        answerArea.appendChild(hint);
 
         const submitBtn = document.createElement('button');
         submitBtn.className = 'submit-btn';
         submitBtn.textContent = this.state.currentIndex === total - 1 ? '提交并查看结果' : '下一题';
-        submitBtn.onclick = () => this.submitInput(q, inp);
-        answerArea.appendChild(submitBtn);
-
-        // 选完日期自动跳转
-        inp.onchange = () => {
-          if (inp.value) {
-            setTimeout(() => this.submitInput(q, inp), 200);
+        submitBtn.onclick = () => {
+          const y = yearSel.value;
+          const m = monthSel.value;
+          const d = daySel.value;
+          if (!y || !m || !d) {
+            // 模拟一个 input 对象传给 submitInput
+            const fakeInp = { value: '' };
+            this.submitInput(q, fakeInp);
+            return;
           }
+          const dateStr = `${y}-${m}-${d}`;
+          const fakeInp = { value: dateStr };
+          this.submitInput(q, fakeInp);
         };
+        answerArea.appendChild(submitBtn);
       } else {
         // 文本输入
         const inp = document.createElement('input');
