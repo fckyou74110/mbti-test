@@ -17,6 +17,7 @@ const TestApp = {
     this.state.answers = {};
     this.state.started = true;
     this.state.submitted = false;
+    this.state.extrasChecked = false;
     // 缓存题集,供 findAnswerKey 退化用
     window._currentQuestions = this.state.questions;
     showPage('page-quiz');
@@ -249,24 +250,34 @@ const TestApp = {
   nextQuestion() {
     this.state.currentIndex++;
 
-    // 检查是否需要动态追加题目
-    if (this.state.currentIndex === this.state.questions.length) {
-      const extras = getConditionalQuestions(this.state.answers);
-      if (extras.length > 0) {
-        // 追加新题
-        this.state.questions = [...this.state.questions, ...extras];
-        // 更新总数显示
-        document.getElementById('total-q').textContent = this.state.questions.length;
-        this.showTransition(() => this.renderQuestion());
-        return;
-      }
-
-      // 没有动态题 → 提交
+    // 防御:如果已经超过题目末尾,直接提交
+    if (this.state.currentIndex > this.state.questions.length) {
       this.submit();
       return;
     }
 
-    // 切到下一题前,显示过渡(如果下一题是 love 或 fortune,弹个小窗)
+    // 检查是否需要动态追加题目
+    if (this.state.currentIndex === this.state.questions.length) {
+      // 用标记避免重复追加(否则陷入死循环)
+      if (!this.state.extrasChecked) {
+        this.state.extrasChecked = true;
+        const extras = getConditionalQuestions(this.state.answers);
+        if (extras.length > 0) {
+          // 追加新题
+          this.state.questions = [...this.state.questions, ...extras];
+          // 更新总数显示
+          document.getElementById('total-q').textContent = this.state.questions.length;
+          this.showTransition(() => this.renderQuestion());
+          return;
+        }
+      }
+
+      // 没有动态题(或者已经追加过了) → 提交
+      this.submit();
+      return;
+    }
+
+    // 切到下一题前,显示过渡
     this.showTransition(() => this.renderQuestion());
   },
 
