@@ -480,10 +480,19 @@ const TestApp = {
     document.getElementById('mbti-type').textContent = mbtiType;
     document.getElementById('mbti-desc').textContent = mbtiDesc;
     document.getElementById('fate-text').textContent = fateText;
-    // 配图
+    // 配图(优先 jpg,降级 png)
     const img = document.getElementById('mbti-image');
     if (img) {
-      img.src = 'assets/mbti/' + mbtiType + '.png';
+      img.onerror = () => {
+        // 降级:用 jpg 失败时试 png
+        if (!img.dataset.triedPng) {
+          img.dataset.triedPng = '1';
+          img.src = 'assets/mbti/' + mbtiType + '.png';
+        } else {
+          img.style.display = 'none';
+        }
+      };
+      img.src = 'assets/mbti/' + mbtiType + '.jpg';
       img.alt = mbtiType + ' - ' + mbtiDesc;
     }
     showPage('page-result');
