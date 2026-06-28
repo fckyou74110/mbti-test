@@ -480,6 +480,12 @@ const TestApp = {
     document.getElementById('mbti-type').textContent = mbtiType;
     document.getElementById('mbti-desc').textContent = mbtiDesc;
     document.getElementById('fate-text').textContent = fateText;
+    // 配图
+    const img = document.getElementById('mbti-image');
+    if (img) {
+      img.src = 'assets/mbti/' + mbtiType + '.png';
+      img.alt = mbtiType + ' - ' + mbtiDesc;
+    }
     showPage('page-result');
   },
 

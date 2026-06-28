@@ -370,6 +370,21 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
+.result-image-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 16px auto 20px;
+}
+.mbti-image {
+  width: 220px;
+  height: 220px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(183, 148, 246, 0.4);
+  border: 3px solid rgba(183, 148, 246, 0.4);
+  background: #fdf6e3;
+  object-fit: cover;
+}
+
 .result-type {
   font-size: 42px;
   font-weight: 900;
