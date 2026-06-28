@@ -244,11 +244,9 @@ function buildQuestionSet() {
 
   // 3. 算命题 6 道(从池里抽 6 道,加 destiny 必出)
   const fortuneKeys = ['surname', 'birthday', 'loverSurname', 'loverBirthday', 'loveAtFirstSight', 'getRichQuick'];
-  // 抽 5 道(除 destiny)
-  const picked5 = fortuneKeys.sort(() => Math.random() - 0.5).slice(0, 5);
-  // 再加 1 道随机(从全部 6 道重抽,可能重复)
-  const extraOne = fortuneKeys[Math.floor(Math.random() * fortuneKeys.length)];
-  const finalFortune = [...picked5, extraOne, 'destiny'].sort(() => Math.random() - 0.5);
+  // 抽 5 道(去重)
+  const shuffled = fortuneKeys.sort(() => Math.random() - 0.5);
+  const finalFortune = [...shuffled.slice(0, 5), 'destiny'].sort(() => Math.random() - 0.5);
 
   finalFortune.forEach(key => {
     const pool = FORTUNE_POOL[key];
@@ -340,11 +338,18 @@ function getConditionalQuestions(answers) {
 
 function findAnswerKey(answers, loveKey) {
   // 从已回答的题里反查 loveKey 对应的题
-  // 这里简单实现:直接根据我们已知的题目结构映射
-  // 由于题目是随机的,我们从全局 state 里查
-  if (typeof TestApp !== 'undefined' && TestApp.state.questions) {
-    const q = TestApp.state.questions.find(q => q.loveKey === loveKey);
-    return q;
+  // 注意:questions.js 是单独 <script>,不能直接访问 app.js 里的 const
+  // 用 window 上的属性绕开
+  const ta = (typeof window !== 'undefined' && window.TestApp)
+    || (typeof TestApp !== 'undefined' ? TestApp : null);
+  if (ta && ta.state && ta.state.questions) {
+    const q = ta.state.questions.find(q => q.loveKey === loveKey);
+    if (q) return q;
+  }
+  // 退化:用全局变量缓存当前题集
+  if (typeof window !== 'undefined' && window._currentQuestions) {
+    const q = window._currentQuestions.find(q => q.loveKey === loveKey);
+    if (q) return q;
   }
   return null;
 }

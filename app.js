@@ -17,6 +17,8 @@ const TestApp = {
     this.state.answers = {};
     this.state.started = true;
     this.state.submitted = false;
+    // 缓存题集,供 findAnswerKey 退化用
+    window._currentQuestions = this.state.questions;
     showPage('page-quiz');
     this.renderQuestion();
   },
@@ -494,3 +496,6 @@ function showPage(pageId) {
 document.addEventListener('touchmove', function(e) {
   if (e.touches.length > 1) e.preventDefault();
 }, { passive: false });
+
+// 挂到 window,供 questions.js 里的 findAnswerKey 访问
+if (typeof window !== 'undefined') window.TestApp = TestApp;
